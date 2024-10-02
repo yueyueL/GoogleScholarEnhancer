@@ -155,12 +155,10 @@
             { label: 'Exact phrase:', id: 'exact-phrase', width: '150px' },
             { label: 'Without:', id: 'without-words', width: '150px', placeholder: 'Without words' },
             { label: 'Author:', id: 'author', width: '150px' },
-            { label: 'Publication:', id: 'publication', width: '150px' },
-            { label: 'Year from:', id: 'date-range-start', width: '80px' },
-            { label: 'to:', id: 'date-range-end', width: '80px' }
+            { label: 'Published in:', id: 'publication', width: '150px', placeholder: 'Journal or conference' }
         ];
 
-        advancedSearchFields.forEach(field => {
+        advancedSearchFields.forEach((field, index) => {
             const fieldContainer = document.createElement('div');
             fieldContainer.style.marginLeft = '10px';
             fieldContainer.style.display = 'flex';
@@ -181,6 +179,25 @@
 
             fieldContainer.appendChild(label);
             fieldContainer.appendChild(input);
+
+            // Add "Title only" checkbox after the keywords input
+            if (index === 0) {
+                const titleOnlyLabel = document.createElement('label');
+                titleOnlyLabel.style.marginLeft = '5px';
+                titleOnlyLabel.style.display = 'flex';
+                titleOnlyLabel.style.alignItems = 'center';
+
+                const titleOnlyCheckbox = document.createElement('input');
+                titleOnlyCheckbox.type = 'checkbox';
+                titleOnlyCheckbox.id = 'title-only';
+                titleOnlyCheckbox.style.marginRight = '5px';
+
+                titleOnlyLabel.appendChild(titleOnlyCheckbox);
+                titleOnlyLabel.appendChild(document.createTextNode('Title only'));
+
+                fieldContainer.appendChild(titleOnlyLabel);
+            }
+
             container.appendChild(fieldContainer);
         });
 
@@ -456,7 +473,7 @@
 
     function showFrequentScholars() {
         const scholarCounts = {};
-        const scholarLinks = {};
+        const scholarInfo = {};
         const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
         
         results.forEach(result => {
@@ -464,11 +481,13 @@
             authors.forEach(author => {
                 const name = author.textContent.trim();
                 const link = author.href;
-                if (name in scholarCounts) {
-                    scholarCounts[name]++;
-                } else {
-                    scholarCounts[name] = 1;
-                    scholarLinks[name] = link;
+                if (link.includes('user=')) {  // Ensure it's a Google Scholar profile link
+                    if (link in scholarCounts) {
+                        scholarCounts[link]++;
+                    } else {
+                        scholarCounts[link] = 1;
+                        scholarInfo[link] = { name, link };
+                    }
                 }
             });
         });
@@ -497,9 +516,9 @@
         frequentScholarsDiv.innerHTML = `
             <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Frequent Scholars</h3>
             <ul style="list-style-type: none; padding-left: 0; margin: 0;">
-                ${sortedScholars.map(([name, count]) => `
+                ${sortedScholars.map(([link, count]) => `
                     <li style="margin-bottom: 8px;">
-                        <a href="${scholarLinks[name]}" target="_blank" style="text-decoration: none; color: #1a0dab; display: inline-block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</a>
+                        <a href="${link}" target="_blank" style="text-decoration: none; color: #1a0dab; display: inline-block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${scholarInfo[link].name}</a>
                         <span style="color: #006621; font-size: 12px;"> (${count})</span>
                     </li>
                 `).join('')}
@@ -527,26 +546,45 @@
         const withoutWords = document.getElementById('without-words').value;
         const author = document.getElementById('author').value;
         const publication = document.getElementById('publication').value;
-        const dateRangeStart = document.getElementById('date-range-start').value;
-        const dateRangeEnd = document.getElementById('date-range-end').value;
+        const titleOnly = document.getElementById('title-only').checked;
+
+        if (titleOnly) {
+            query += 'allintitle:';
+        }
 
         if (allWords) query += allWords + ' ';
         if (exactPhrase) query += `"${exactPhrase}" `;
         if (withoutWords) query += '-' + withoutWords.split(' ').join(' -') + ' ';
         if (author) query += `author:"${author}" `;
         if (publication) query += `source:"${publication}" `;
-        if (dateRangeStart || dateRangeEnd) {
-            query += `daterange:${dateRangeStart || '*'}-${dateRangeEnd || '*'} `;
-        }
 
         mainSearchInput.value = query.trim();
+        
+        // Store the current values in sessionStorage
+        sessionStorage.setItem('gs_enhancer_all_words', allWords);
+        sessionStorage.setItem('gs_enhancer_exact_phrase', exactPhrase);
+        sessionStorage.setItem('gs_enhancer_without_words', withoutWords);
+        sessionStorage.setItem('gs_enhancer_author', author);
+        sessionStorage.setItem('gs_enhancer_publication', publication);
+        sessionStorage.setItem('gs_enhancer_title_only', titleOnly);
+
         document.querySelector('button[type="submit"]').click();
+    }
+
+    function restoreAdvancedSearchValues() {
+        document.getElementById('all-words').value = sessionStorage.getItem('gs_enhancer_all_words') || '';
+        document.getElementById('exact-phrase').value = sessionStorage.getItem('gs_enhancer_exact_phrase') || '';
+        document.getElementById('without-words').value = sessionStorage.getItem('gs_enhancer_without_words') || '';
+        document.getElementById('author').value = sessionStorage.getItem('gs_enhancer_author') || '';
+        document.getElementById('publication').value = sessionStorage.getItem('gs_enhancer_publication') || '';
+        document.getElementById('title-only').checked = sessionStorage.getItem('gs_enhancer_title_only') === 'true';
     }
 
     function init() {
         if (document.querySelector('#gs_top')) {
             addStyles();
             createSettingsButton();
+            restoreAdvancedSearchValues(); // Add this line to restore values
             if (config.autoPagingEnabled) {
                 initAutoPaging();
             }
