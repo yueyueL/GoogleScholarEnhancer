@@ -110,6 +110,113 @@
         document.body.appendChild(switcher);
     }
 
+    function createSettingsButton() {
+        const button = document.createElement('button');
+        button.textContent = '⚙️ Settings';
+        button.style.cssText = `
+            padding: 5px 10px;
+            margin-right: 10px;
+            background-color: #f1f3f4;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            color: #202124;
+            font-family: arial,sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+        `;
+        button.addEventListener('click', openSettingsModal);
+
+        // Find the profile button container
+        const profileContainer = document.querySelector('#gs_hdr_drw');
+        if (profileContainer) {
+            // Insert our button before the profile container
+            profileContainer.parentNode.insertBefore(button, profileContainer);
+        } else {
+            // Fallback: append to the header if profile container is not found
+            const header = document.querySelector('#gs_top');
+            if (header) {
+                header.appendChild(button);
+            }
+        }
+    }
+
+    function createSettingsModal() {
+        const modalOverlay = document.createElement('div');
+        modalOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 9999;
+        `;
+
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 10000;
+        `;
+        modal.innerHTML = `
+            <h2>Google Scholar Enhancer Settings</h2>
+            <label>
+                Column Layout:
+                <select id="columnLayout">
+                    <option value="1" ${config.columnLayout === 1 ? 'selected' : ''}>Single Column</option>
+                    <option value="2" ${config.columnLayout === 2 ? 'selected' : ''}>Two Columns</option>
+                    <option value="3" ${config.columnLayout === 3 ? 'selected' : ''}>Three Columns</option>
+                </select>
+            </label>
+            <br><br>
+            <label>
+                <input type="checkbox" id="autoPaging" ${config.autoPagingEnabled ? 'checked' : ''}>
+                Enable Automatic Page Turning
+            </label>
+            <br><br>
+            <button id="saveSettings">Save</button>
+            <button id="closeSettings">Close</button>
+        `;
+
+        modalOverlay.appendChild(modal);
+        return modalOverlay;
+    }
+
+    function openSettingsModal() {
+        const modalOverlay = createSettingsModal();
+        document.body.appendChild(modalOverlay);
+
+        const closeModal = () => {
+            document.body.removeChild(modalOverlay);
+        };
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('saveSettings').addEventListener('click', () => {
+            config.columnLayout = parseInt(document.getElementById('columnLayout').value);
+            config.autoPagingEnabled = document.getElementById('autoPaging').checked;
+            GM_setValue('columnLayout', config.columnLayout);
+            GM_setValue('autoPagingEnabled', config.autoPagingEnabled);
+            addStyles();
+            if (config.autoPagingEnabled) {
+                initAutoPaging();
+            }
+            closeModal();
+        });
+
+        document.getElementById('closeSettings').addEventListener('click', closeModal);
+    }
+
     function initAutoPaging() {
         const pager = {
             nextLink: '//a[./span[@class="gs_ico gs_ico_nav_next"]]',
@@ -201,7 +308,10 @@
     function init() {
         if (document.querySelector('#gs_res_ccl_mid')) {
             addStyles();
-            createLayoutSwitcher();
+            // Add a small delay to ensure the Google Scholar UI is fully loaded
+            setTimeout(() => {
+                createSettingsButton();
+            }, 500);
             if (config.autoPagingEnabled) {
                 initAutoPaging();
             }
