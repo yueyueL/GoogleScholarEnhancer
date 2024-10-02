@@ -31,7 +31,8 @@
         columnLayout: GM_getValue('columnLayout', 1),
         autoPagingEnabled: GM_getValue('autoPagingEnabled', true),
         bibtexCopyEnabled: GM_getValue('bibtexCopyEnabled', true),
-        bibtexCopyAlert: GM_getValue('bibtexCopyAlert', true)
+        bibtexCopyAlert: GM_getValue('bibtexCopyAlert', true),
+        singleResultRedirect: GM_getValue('singleResultRedirect', true) // Add this line
     };
 
     const styles = {
@@ -195,6 +196,11 @@
                 Show Alert on BibTeX Copy
             </label>
             <br><br>
+            <label>
+                <input type="checkbox" id="singleResultRedirect" ${config.singleResultRedirect ? 'checked' : ''}>
+                Auto-redirect for Single Results
+            </label>
+            <br><br>
             <button id="saveSettings">Save</button>
             <button id="closeSettings">Close</button>
         `;
@@ -222,10 +228,12 @@
             config.autoPagingEnabled = document.getElementById('autoPaging').checked;
             config.bibtexCopyEnabled = document.getElementById('bibtexCopy').checked;
             config.bibtexCopyAlert = document.getElementById('bibtexCopyAlert').checked;
+            config.singleResultRedirect = document.getElementById('singleResultRedirect').checked; // Add this line
             GM_setValue('columnLayout', config.columnLayout);
             GM_setValue('autoPagingEnabled', config.autoPagingEnabled);
             GM_setValue('bibtexCopyEnabled', config.bibtexCopyEnabled);
             GM_setValue('bibtexCopyAlert', config.bibtexCopyAlert);
+            GM_setValue('singleResultRedirect', config.singleResultRedirect); // Add this line
             addStyles();
             if (config.autoPagingEnabled) {
                 initAutoPaging();
@@ -361,6 +369,17 @@
         });
     }
 
+    function redirectSingleResult() {
+        if (!config.singleResultRedirect) return; // Add this line
+        const links = document.querySelectorAll('.gs_rt > a');
+        if (links.length !== 1) return;
+        if (sessionStorage.getItem(location.href) === null) {
+            // Prevent redirection when back button is pressed
+            sessionStorage.setItem(location.href, '1');
+            links[0].click();
+        }
+    }
+
     function init() {
         if (document.querySelector('#gs_res_ccl_mid')) {
             addStyles();
@@ -371,6 +390,7 @@
                 initAutoPaging();
             }
             initBibtexCopy(); // Always initialize
+            redirectSingleResult(); // Add this line to call the new function
         }
     }
 
