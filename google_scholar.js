@@ -32,7 +32,8 @@
         autoPagingEnabled: GM_getValue('autoPagingEnabled', true),
         bibtexCopyEnabled: GM_getValue('bibtexCopyEnabled', true),
         bibtexCopyAlert: GM_getValue('bibtexCopyAlert', true),
-        singleResultRedirect: GM_getValue('singleResultRedirect', true) // Add this line
+        singleResultRedirect: GM_getValue('singleResultRedirect', true),
+        showFrequentScholars: GM_getValue('showFrequentScholars', true)
     };
 
     const styles = {
@@ -201,6 +202,11 @@
                 Auto-redirect for Single Results
             </label>
             <br><br>
+            <label>
+                <input type="checkbox" id="showFrequentScholars" ${config.showFrequentScholars ? 'checked' : ''}>
+                Show Frequent Scholars
+            </label>
+            <br><br>
             <button id="saveSettings">Save</button>
             <button id="closeSettings">Close</button>
         `;
@@ -228,18 +234,25 @@
             config.autoPagingEnabled = document.getElementById('autoPaging').checked;
             config.bibtexCopyEnabled = document.getElementById('bibtexCopy').checked;
             config.bibtexCopyAlert = document.getElementById('bibtexCopyAlert').checked;
-            config.singleResultRedirect = document.getElementById('singleResultRedirect').checked; // Add this line
+            config.singleResultRedirect = document.getElementById('singleResultRedirect').checked;
+            config.showFrequentScholars = document.getElementById('showFrequentScholars').checked;
             GM_setValue('columnLayout', config.columnLayout);
             GM_setValue('autoPagingEnabled', config.autoPagingEnabled);
             GM_setValue('bibtexCopyEnabled', config.bibtexCopyEnabled);
             GM_setValue('bibtexCopyAlert', config.bibtexCopyAlert);
-            GM_setValue('singleResultRedirect', config.singleResultRedirect); // Add this line
+            GM_setValue('singleResultRedirect', config.singleResultRedirect);
+            GM_setValue('showFrequentScholars', config.showFrequentScholars);
             addStyles();
             if (config.autoPagingEnabled) {
                 initAutoPaging();
             }
             if (config.bibtexCopyEnabled) {
                 initBibtexCopy();
+            }
+            if (config.showFrequentScholars) {
+                showFrequentScholars();
+            } else {
+                removeFrequentScholars();
             }
             closeModal();
         });
@@ -311,6 +324,10 @@
                     }
                 });
 
+                if (config.showFrequentScholars) {
+                    showFrequentScholars(); // Update frequent scholars after loading more results
+                }
+
                 const replaceE = getElementByXpath(curSite.pager.replaceE);
                 if (replaceE) {
                     const newReplaceE = getElementByXpath(curSite.pager.replaceE, doc);
@@ -370,13 +387,75 @@
     }
 
     function redirectSingleResult() {
-        if (!config.singleResultRedirect) return; // Add this line
+        if (!config.singleResultRedirect) return;
         const links = document.querySelectorAll('.gs_rt > a');
         if (links.length !== 1) return;
         if (sessionStorage.getItem(location.href) === null) {
             // Prevent redirection when back button is pressed
             sessionStorage.setItem(location.href, '1');
             links[0].click();
+        }
+    }
+
+    function showFrequentScholars() {
+        const scholarCounts = {};
+        const scholarLinks = {};
+        const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
+        
+        results.forEach(result => {
+            const authors = result.querySelectorAll('.gs_a a');
+            authors.forEach(author => {
+                const name = author.textContent.trim();
+                const link = author.href;
+                if (name in scholarCounts) {
+                    scholarCounts[name]++;
+                } else {
+                    scholarCounts[name] = 1;
+                    scholarLinks[name] = link;
+                }
+            });
+        });
+
+        const sortedScholars = Object.entries(scholarCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10); // Show top 10 frequent scholars
+
+        const frequentScholarsDiv = document.createElement('div');
+        frequentScholarsDiv.id = 'frequent-scholars';
+        frequentScholarsDiv.style.cssText = `
+            position: fixed;
+            right: 20px;
+            top: 200px;
+            background-color: white;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-width: 250px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 14px;
+            line-height: 1.4;
+        `;
+
+        frequentScholarsDiv.innerHTML = `
+            <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Frequent Scholars</h3>
+            <ul style="list-style-type: none; padding-left: 0; margin: 0;">
+                ${sortedScholars.map(([name, count]) => `
+                    <li style="margin-bottom: 8px;">
+                        <a href="${scholarLinks[name]}" target="_blank" style="text-decoration: none; color: #1a0dab; display: inline-block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</a>
+                        <span style="color: #006621; font-size: 12px;"> (${count})</span>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+
+        document.body.appendChild(frequentScholarsDiv);
+    }
+
+    function removeFrequentScholars() {
+        const frequentScholarsDiv = document.getElementById('frequent-scholars');
+        if (frequentScholarsDiv) {
+            frequentScholarsDiv.remove();
         }
     }
 
@@ -390,7 +469,10 @@
                 initAutoPaging();
             }
             initBibtexCopy(); // Always initialize
-            redirectSingleResult(); // Add this line to call the new function
+            redirectSingleResult();
+            if (config.showFrequentScholars) {
+                showFrequentScholars();
+            }
         }
     }
 
