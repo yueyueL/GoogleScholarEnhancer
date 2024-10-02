@@ -118,12 +118,27 @@
     }
 
     function createSettingsButton() {
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 5px 10px;
+            background-color: #f1f3f4;
+            border-bottom: 1px solid #dadce0;
+            z-index: 1000;
+        `;
+
         const button = document.createElement('button');
         button.textContent = '⚙️ Settings';
         button.style.cssText = `
             padding: 5px 10px;
             margin-right: 10px;
-            background-color: #f1f3f4;
+            background-color: #fff;
             border: 1px solid #dadce0;
             border-radius: 4px;
             color: #202124;
@@ -133,18 +148,60 @@
         `;
         button.addEventListener('click', openSettingsModal);
 
-        // Find the profile button container
-        const profileContainer = document.querySelector('#gs_hdr_drw');
-        if (profileContainer) {
-            // Insert our button before the profile container
-            profileContainer.parentNode.insertBefore(button, profileContainer);
-        } else {
-            // Fallback: append to the header if profile container is not found
-            const header = document.querySelector('#gs_top');
-            if (header) {
-                header.appendChild(button);
+        container.appendChild(button);
+
+        const advancedSearchFields = [
+            { label: 'Keywords:', id: 'all-words', width: '150px', placeholder: 'All of the words' },
+            { label: 'Exact phrase:', id: 'exact-phrase', width: '150px' },
+            { label: 'Without:', id: 'without-words', width: '150px', placeholder: 'Without words' },
+            { label: 'Author:', id: 'author', width: '150px' },
+            { label: 'Publication:', id: 'publication', width: '150px' },
+            { label: 'Year from:', id: 'date-range-start', width: '80px' },
+            { label: 'to:', id: 'date-range-end', width: '80px' }
+        ];
+
+        advancedSearchFields.forEach(field => {
+            const fieldContainer = document.createElement('div');
+            fieldContainer.style.marginLeft = '10px';
+            fieldContainer.style.display = 'flex';
+            fieldContainer.style.alignItems = 'center';
+
+            const label = document.createElement('label');
+            label.textContent = field.label;
+            label.style.marginRight = '5px';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = field.id;
+            input.style.width = field.width;
+            input.style.padding = '2px 5px';
+            if (field.placeholder) {
+                input.placeholder = field.placeholder;
             }
-        }
+
+            fieldContainer.appendChild(label);
+            fieldContainer.appendChild(input);
+            container.appendChild(fieldContainer);
+        });
+
+        const applyButton = document.createElement('button');
+        applyButton.textContent = 'Apply';
+        applyButton.style.cssText = `
+            padding: 5px 10px;
+            margin-left: 10px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        `;
+        applyButton.addEventListener('click', applyAdvancedSearch);
+
+        container.appendChild(applyButton);
+
+        const body = document.body;
+        body.insertBefore(container, body.firstChild);
+        body.style.paddingTop = `${container.offsetHeight}px`;
     }
 
     function createSettingsModal() {
@@ -459,12 +516,37 @@
         }
     }
 
+    function applyAdvancedSearch() {
+        const mainSearchInput = document.querySelector('input[name="q"]');
+        if (!mainSearchInput) return;
+
+        let query = '';
+
+        const allWords = document.getElementById('all-words').value;
+        const exactPhrase = document.getElementById('exact-phrase').value;
+        const withoutWords = document.getElementById('without-words').value;
+        const author = document.getElementById('author').value;
+        const publication = document.getElementById('publication').value;
+        const dateRangeStart = document.getElementById('date-range-start').value;
+        const dateRangeEnd = document.getElementById('date-range-end').value;
+
+        if (allWords) query += allWords + ' ';
+        if (exactPhrase) query += `"${exactPhrase}" `;
+        if (withoutWords) query += '-' + withoutWords.split(' ').join(' -') + ' ';
+        if (author) query += `author:"${author}" `;
+        if (publication) query += `source:"${publication}" `;
+        if (dateRangeStart || dateRangeEnd) {
+            query += `daterange:${dateRangeStart || '*'}-${dateRangeEnd || '*'} `;
+        }
+
+        mainSearchInput.value = query.trim();
+        document.querySelector('button[type="submit"]').click();
+    }
+
     function init() {
-        if (document.querySelector('#gs_res_ccl_mid')) {
+        if (document.querySelector('#gs_top')) {
             addStyles();
-            setTimeout(() => {
-                createSettingsButton();
-            }, 500);
+            createSettingsButton();
             if (config.autoPagingEnabled) {
                 initAutoPaging();
             }
