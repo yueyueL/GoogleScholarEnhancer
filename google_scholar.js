@@ -3,6 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      0.6
 // @description  Enhance Google Scholar with column layout options and auto-paging
+// @icon         https://www.google.com/s2/favicons?domain=scholar.google.com
 // @match        *://scholar.google.com/*
 // @match        *://scholar.google.com.au/*
 // @match        *://scholar.google.co.uk/*
@@ -33,7 +34,71 @@
         bibtexCopyEnabled: GM_getValue('bibtexCopyEnabled', true),
         bibtexCopyAlert: GM_getValue('bibtexCopyAlert', true),
         singleResultRedirect: GM_getValue('singleResultRedirect', true),
-        showFrequentScholars: GM_getValue('showFrequentScholars', true)
+        showFrequentScholars: GM_getValue('showFrequentScholars', true),
+        language: GM_getValue('language', 'en')
+    };
+
+    const translations = {
+        en: {
+            settings: '⚙️ Settings',
+            keywords: 'Keywords:',
+            exactPhrase: 'Exact phrase:',
+            without: 'Without:',
+            author: 'Author:',
+            publishedIn: 'Published in:',
+            titleOnly: 'Title only',
+            apply: 'Apply',
+            settingsTitle: 'Google Scholar Enhancer Settings',
+            layoutOptions: 'Layout Options',
+            columnLayout: 'Column Layout:',
+            singleColumn: 'Single Column',
+            twoColumns: 'Two Columns',
+            threeColumns: 'Three Columns',
+            navigationOptions: 'Navigation Options',
+            enableAutoPaging: 'Enable Automatic Page Turning',
+            autoRedirect: 'Auto-redirect for Single Results',
+            bibtexOptions: 'BibTeX Options',
+            enableDirectBibtex: 'Enable Direct BibTeX Copying',
+            showBibtexAlert: 'Show Alert on BibTeX Copy',
+            additionalFeatures: 'Additional Features',
+            showFrequentScholars: 'Show Frequent Scholars',
+            language: 'Language',
+            save: 'Save',
+            close: 'Close',
+            allOfTheWords: 'All of the words',
+            withoutWords: 'Without words',
+            journalOrConference: 'Journal or conference'
+        },
+        zh: {
+            settings: '⚙️ 设置',
+            keywords: '关键词：',
+            exactPhrase: '精确短语：',
+            without: '不包含：',
+            author: '作者：',
+            publishedIn: '发表于：',
+            titleOnly: '仅标题',
+            apply: '应用',
+            settingsTitle: 'Google Scholar 增强设置',
+            layoutOptions: '布局选项',
+            columnLayout: '列布局：',
+            singleColumn: '单列',
+            twoColumns: '双列',
+            threeColumns: '三列',
+            navigationOptions: '导航选项',
+            enableAutoPaging: '启用自动翻页',
+            autoRedirect: '单一结果自动重定向',
+            bibtexOptions: 'BibTeX 选项',
+            enableDirectBibtex: '启用直接 BibTeX 复制',
+            showBibtexAlert: '显示 BibTeX 复制提醒',
+            additionalFeatures: '附加功能',
+            showFrequentScholars: '显示常见学者',
+            language: '语言',
+            save: '保',
+            close: '关闭',
+            allOfTheWords: '包含所有这些词',
+            withoutWords: '不包含这些词',
+            journalOrConference: '期刊或会议'
+        }
     };
 
     const styles = {
@@ -118,6 +183,7 @@
     }
 
     function createSettingsButton() {
+        const lang = translations[config.language];
         const container = document.createElement('div');
         container.style.cssText = `
             position: fixed;
@@ -133,9 +199,10 @@
             z-index: 1000;
         `;
 
-        const button = document.createElement('button');
-        button.textContent = '⚙️ Settings';
-        button.style.cssText = `
+        const settingsButton = document.createElement('button');
+        settingsButton.id = 'settings-button';
+        settingsButton.textContent = lang.settings;
+        settingsButton.style.cssText = `
             padding: 5px 10px;
             margin-right: 10px;
             background-color: #fff;
@@ -146,16 +213,16 @@
             font-size: 14px;
             cursor: pointer;
         `;
-        button.addEventListener('click', openSettingsModal);
+        settingsButton.addEventListener('click', openSettingsModal);
 
-        container.appendChild(button);
+        container.appendChild(settingsButton);
 
         const advancedSearchFields = [
-            { label: 'Keywords:', id: 'all-words', width: '150px', placeholder: 'All of the words' },
-            { label: 'Exact phrase:', id: 'exact-phrase', width: '150px' },
-            { label: 'Without:', id: 'without-words', width: '150px', placeholder: 'Without words' },
-            { label: 'Author:', id: 'author', width: '150px' },
-            { label: 'Published in:', id: 'publication', width: '150px', placeholder: 'Journal or conference' }
+            { label: lang.keywords, id: 'all-words', width: '150px', placeholder: lang.allOfTheWords },
+            { label: lang.exactPhrase, id: 'exact-phrase', width: '150px' },
+            { label: lang.without, id: 'without-words', width: '150px', placeholder: lang.withoutWords },
+            { label: lang.author, id: 'author', width: '150px' },
+            { label: lang.publishedIn, id: 'publication', width: '150px', placeholder: lang.journalOrConference }
         ];
 
         advancedSearchFields.forEach((field, index) => {
@@ -193,7 +260,7 @@
                 titleOnlyCheckbox.style.marginRight = '5px';
 
                 titleOnlyLabel.appendChild(titleOnlyCheckbox);
-                titleOnlyLabel.appendChild(document.createTextNode('Title only'));
+                titleOnlyLabel.appendChild(document.createTextNode(lang.titleOnly));
 
                 fieldContainer.appendChild(titleOnlyLabel);
             }
@@ -202,7 +269,8 @@
         });
 
         const applyButton = document.createElement('button');
-        applyButton.textContent = 'Apply';
+        applyButton.id = 'apply-button';
+        applyButton.textContent = lang.apply;
         applyButton.style.cssText = `
             padding: 5px 10px;
             margin-left: 10px;
@@ -222,6 +290,7 @@
     }
 
     function createSettingsModal() {
+        const lang = translations[config.language];
         const modalOverlay = document.createElement('div');
         modalOverlay.style.cssText = `
             position: fixed;
@@ -249,68 +318,77 @@
         `;
 
         modal.innerHTML = `
-            <h2 style="margin-top: 0; color: #1a73e8; font-size: 24px; margin-bottom: 20px;">Google Scholar Enhancer Settings</h2>
+            <h2 style="margin-top: 0; color: #1a73e8; font-size: 24px; margin-bottom: 20px;">${lang.settingsTitle}</h2>
             <div style="display: grid; gap: 20px;">
                 <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">Layout Options</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">${lang.layoutOptions}</h3>
                     <div>
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Column Layout:</label>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">${lang.columnLayout}</label>
                         <select id="columnLayout" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <option value="1" ${config.columnLayout === 1 ? 'selected' : ''}>Single Column</option>
-                            <option value="2" ${config.columnLayout === 2 ? 'selected' : ''}>Two Columns</option>
-                            <option value="3" ${config.columnLayout === 3 ? 'selected' : ''}>Three Columns</option>
+                            <option value="1" ${config.columnLayout === 1 ? 'selected' : ''}>${lang.singleColumn}</option>
+                            <option value="2" ${config.columnLayout === 2 ? 'selected' : ''}>${lang.twoColumns}</option>
+                            <option value="3" ${config.columnLayout === 3 ? 'selected' : ''}>${lang.threeColumns}</option>
                         </select>
-                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Choose how many columns to display search results in.</p>
                     </div>
                 </div>
                 <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">Navigation Options</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">${lang.navigationOptions}</h3>
                     <div>
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="autoPaging" ${config.autoPagingEnabled ? 'checked' : ''} style="margin-right: 10px;">
-                            <span>Enable Automatic Page Turning</span>
+                            <span>${lang.enableAutoPaging}</span>
                         </label>
-                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Automatically load more results as you scroll down the page.</p>
                     </div>
                     <div style="margin-top: 10px;">
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="singleResultRedirect" ${config.singleResultRedirect ? 'checked' : ''} style="margin-right: 10px;">
-                            <span>Auto-redirect for Single Results</span>
+                            <span>${lang.autoRedirect}</span>
                         </label>
-                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Automatically redirect to the paper's page when there's only one search result.</p>
                     </div>
                 </div>
                 <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">BibTeX Options</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">${lang.bibtexOptions}</h3>
                     <div>
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="bibtexCopy" ${config.bibtexCopyEnabled ? 'checked' : ''} style="margin-right: 10px;">
-                            <span>Enable Direct BibTeX Copying</span>
+                            <span>${lang.enableDirectBibtex}</span>
                         </label>
-                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Copy BibTeX to clipboard with a single click.</p>
                     </div>
                     <div style="margin-top: 10px;">
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="bibtexCopyAlert" ${config.bibtexCopyAlert ? 'checked' : ''} style="margin-right: 10px;">
-                            <span>Show Alert on BibTeX Copy</span>
+                            <span>${lang.showBibtexAlert}</span>
                         </label>
-                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Display an alert when BibTeX is successfully copied.</p>
                     </div>
                 </div>
                 <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
-                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">Additional Features</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">${lang.additionalFeatures}</h3>
                     <div>
                         <label style="display: flex; align-items: center; cursor: pointer;">
                             <input type="checkbox" id="showFrequentScholars" ${config.showFrequentScholars ? 'checked' : ''} style="margin-right: 10px;">
-                            <span>Show Frequent Scholars</span>
+                            <span>${lang.showFrequentScholars}</span>
                         </label>
-                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Display a list of frequently appearing authors in the search results.</p>
+                    </div>
+                </div>
+                <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">${lang.language}</h3>
+                    <div>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="language" value="en" ${config.language === 'en' ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>English</span>
+                        </label>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="language" value="zh" ${config.language === 'zh' ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>中文</span>
+                        </label>
                     </div>
                 </div>
             </div>
             <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                <button id="saveSettings" style="background-color: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Save</button>
-                <button id="closeSettings" style="background-color: #f1f3f4; color: #202124; border: 1px solid #dadce0; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Close</button>
+                <button id="saveSettings" style="background-color: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">${lang.save}</button>
+                <button id="closeSettings" style="background-color: #f1f3f4; color: #202124; border: 1px solid #dadce0; padding: 10px 20px; border-radius: 4px; cursor: pointer;">${lang.close}</button>
             </div>
         `;
 
@@ -373,6 +451,12 @@
                 showFrequentScholars();
             } else {
                 removeFrequentScholars();
+            }
+            const newLanguage = document.querySelector('input[name="language"]:checked').value;
+            if (newLanguage !== config.language) {
+                config.language = newLanguage;
+                GM_setValue('language', config.language);
+                updateUILanguage();
             }
             closeModal();
         });
@@ -542,6 +626,7 @@
             .sort((a, b) => b[1] - a[1])
             .slice(0, 10); // Show top 10 frequent scholars
 
+        const lang = translations[config.language];
         const frequentScholarsDiv = document.createElement('div');
         frequentScholarsDiv.id = 'frequent-scholars';
         frequentScholarsDiv.style.cssText = `
@@ -560,7 +645,7 @@
         `;
 
         frequentScholarsDiv.innerHTML = `
-            <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Frequent Scholars</h3>
+            <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">${lang.showFrequentScholars}</h3>
             <ul style="list-style-type: none; padding-left: 0; margin: 0;">
                 ${sortedScholars.map(([link, count]) => `
                     <li style="margin-bottom: 8px;">
@@ -626,15 +711,63 @@
         document.getElementById('title-only').checked = sessionStorage.getItem('gs_enhancer_title_only') === 'true';
     }
 
+    function switchLanguage() {
+        config.language = config.language === 'en' ? 'zh' : 'en';
+        GM_setValue('language', config.language);
+        updateUILanguage();
+    }
+
+    function updateUILanguage() {
+        const lang = translations[config.language];
+        document.getElementById('settings-button').textContent = lang.settings;
+        
+        const advancedSearchFields = [
+            { id: 'all-words', labelKey: 'keywords', placeholderKey: 'allOfTheWords' },
+            { id: 'exact-phrase', labelKey: 'exactPhrase' },
+            { id: 'without-words', labelKey: 'without', placeholderKey: 'withoutWords' },
+            { id: 'author', labelKey: 'author' },
+            { id: 'publication', labelKey: 'publishedIn', placeholderKey: 'journalOrConference' }
+        ];
+
+        advancedSearchFields.forEach(field => {
+            const label = document.querySelector(`label[for="${field.id}"]`);
+            if (label) {
+                label.textContent = lang[field.labelKey] + ':';
+            }
+            
+            const input = document.getElementById(field.id);
+            if (input) {
+                if (field.placeholderKey) {
+                    input.placeholder = lang[field.placeholderKey];
+                }
+                input.title = lang[field.labelKey]; // Add tooltip
+            }
+        });
+
+        const titleOnlyLabel = document.querySelector('label[for="title-only"]');
+        if (titleOnlyLabel) {
+            titleOnlyLabel.lastChild.textContent = lang.titleOnly;
+        }
+
+        document.getElementById('apply-button').textContent = lang.apply;
+
+        // Update frequent scholars title if it exists
+        const frequentScholarsTitle = document.querySelector('#frequent-scholars h3');
+        if (frequentScholarsTitle) {
+            frequentScholarsTitle.textContent = lang.showFrequentScholars;
+        }
+    }
+
     function init() {
         if (document.querySelector('#gs_top')) {
             addStyles();
             createSettingsButton();
-            restoreAdvancedSearchValues(); // Add this line to restore values
+            updateUILanguage(); // This line is important
+            restoreAdvancedSearchValues();
             if (config.autoPagingEnabled) {
                 initAutoPaging();
             }
-            initBibtexCopy(); // Always initialize
+            initBibtexCopy();
             redirectSingleResult();
             if (config.showFrequentScholars) {
                 showFrequentScholars();
