@@ -7,6 +7,7 @@
 // @match        *://scholar.google.com.au/*
 // @match        *://scholar.google.co.uk/*
 // @match        *://scholar.google.ca/*
+// @match        *://scholar.google.com.hk/*
 // @match        *://scholar.google.co.in/*
 // @match        *://scholar.google.co.jp/*
 // @match        *://scholar.google.com.hk/*
@@ -19,14 +20,18 @@
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
+// @grant        GM_setClipboard
 // ==/UserScript==
 
 (function() {
     'use strict';
 
     const config = {
-        columnLayout: GM_getValue('columnLayout', 1), // 1 for single column, 2 for double column, 3 for triple column
-        autoPagingEnabled: GM_getValue('autoPagingEnabled', true)
+        columnLayout: GM_getValue('columnLayout', 1),
+        autoPagingEnabled: GM_getValue('autoPagingEnabled', true),
+        bibtexCopyEnabled: GM_getValue('bibtexCopyEnabled', true),
+        bibtexCopyAlert: GM_getValue('bibtexCopyAlert', true)
     };
 
     const styles = {
@@ -180,6 +185,16 @@
                 Enable Automatic Page Turning
             </label>
             <br><br>
+            <label>
+                <input type="checkbox" id="bibtexCopy" ${config.bibtexCopyEnabled ? 'checked' : ''}>
+                Enable Direct BibTeX Copying
+            </label>
+            <br><br>
+            <label>
+                <input type="checkbox" id="bibtexCopyAlert" ${config.bibtexCopyAlert ? 'checked' : ''}>
+                Show Alert on BibTeX Copy
+            </label>
+            <br><br>
             <button id="saveSettings">Save</button>
             <button id="closeSettings">Close</button>
         `;
@@ -205,11 +220,18 @@
         document.getElementById('saveSettings').addEventListener('click', () => {
             config.columnLayout = parseInt(document.getElementById('columnLayout').value);
             config.autoPagingEnabled = document.getElementById('autoPaging').checked;
+            config.bibtexCopyEnabled = document.getElementById('bibtexCopy').checked;
+            config.bibtexCopyAlert = document.getElementById('bibtexCopyAlert').checked;
             GM_setValue('columnLayout', config.columnLayout);
             GM_setValue('autoPagingEnabled', config.autoPagingEnabled);
+            GM_setValue('bibtexCopyEnabled', config.bibtexCopyEnabled);
+            GM_setValue('bibtexCopyAlert', config.bibtexCopyAlert);
             addStyles();
             if (config.autoPagingEnabled) {
                 initAutoPaging();
+            }
+            if (config.bibtexCopyEnabled) {
+                initBibtexCopy();
             }
             closeModal();
         });
@@ -305,16 +327,50 @@
         });
     }
 
+    function initBibtexCopy() {
+        document.addEventListener('click', function(event) {
+            if (config.bibtexCopyEnabled && event.target.textContent.includes('BibTeX')) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const bibtexLink = event.target.closest('a');
+                if (!bibtexLink) return;
+
+                const bibtexUrl = bibtexLink.href;
+                
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: bibtexUrl,
+                    onload: function(response) {
+                        if (response.status === 200) {
+                            GM_setClipboard(response.responseText);
+                            if (config.bibtexCopyAlert) {
+                                alert('BibTeX copied to clipboard');
+                            }
+                        } else {
+                            console.error('Failed to fetch BibTeX');
+                            alert('Failed to copy BibTeX');
+                        }
+                    },
+                    onerror: function(error) {
+                        console.error('Error fetching BibTeX:', error);
+                        alert('Error copying BibTeX');
+                    }
+                });
+            }
+        });
+    }
+
     function init() {
         if (document.querySelector('#gs_res_ccl_mid')) {
             addStyles();
-            // Add a small delay to ensure the Google Scholar UI is fully loaded
             setTimeout(() => {
                 createSettingsButton();
             }, 500);
             if (config.autoPagingEnabled) {
                 initAutoPaging();
             }
+            initBibtexCopy(); // Always initialize
         }
     }
 
