@@ -16,6 +16,8 @@
 - **Advanced Search Interface**: Use an enhanced search interface for more precise queries.
 - **Multilingual Support**: Switch between English and Chinese interfaces.
 
+![](files/page.png)
+
 ## Installation
 
 1. Install the Tampermonkey extension for your browser:
