@@ -25,7 +25,7 @@
     'use strict';
 
     const config = {
-        columnLayout: GM_getValue('columnLayout', 1), // 1 for single column, 2 for double column
+        columnLayout: GM_getValue('columnLayout', 1), // 1 for single column, 2 for double column, 3 for triple column
         autoPagingEnabled: GM_getValue('autoPagingEnabled', true)
     };
 
@@ -33,6 +33,8 @@
         singleColumn: `
             #gs_res_ccl_mid {
                 display: block;
+                max-width: 100%;
+                margin: 0 auto;
             }
         `,
         doubleColumn: `
@@ -40,6 +42,23 @@
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 grid-gap: 20px;
+                max-width: 90vw;
+                margin: 0 auto;
+            }
+            .gs_r.gs_or.gs_scl {
+                width: 100%;
+            }
+        `,
+        tripleColumn: `
+            #gs_res_ccl_mid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-gap: 20px;
+                max-width: 95vw;
+                margin: 0 auto;
+            }
+            .gs_r.gs_or.gs_scl {
+                width: 100%;
             }
         `,
         common: `
@@ -48,13 +67,31 @@
                 padding: 10px;
                 border-radius: 5px;
                 margin-bottom: 10px;
+                box-sizing: border-box;
+            }
+            #gs_top {
+                max-width: 95vw;
+                margin: 0 auto;
+            }
+            #gs_ab_md {
+                max-width: none !important;
             }
         `
     };
 
     function addStyles() {
         GM_addStyle(styles.common);
-        GM_addStyle(config.columnLayout === 1 ? styles.singleColumn : styles.doubleColumn);
+        switch (config.columnLayout) {
+            case 1:
+                GM_addStyle(styles.singleColumn);
+                break;
+            case 2:
+                GM_addStyle(styles.doubleColumn);
+                break;
+            case 3:
+                GM_addStyle(styles.tripleColumn);
+                break;
+        }
     }
 
     function createLayoutSwitcher() {
@@ -62,6 +99,7 @@
         switcher.innerHTML = `
             <option value="1" ${config.columnLayout === 1 ? 'selected' : ''}>Single Column</option>
             <option value="2" ${config.columnLayout === 2 ? 'selected' : ''}>Two Columns</option>
+            <option value="3" ${config.columnLayout === 3 ? 'selected' : ''}>Three Columns</option>
         `;
         switcher.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999;';
         switcher.addEventListener('change', (e) => {
