@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Google Scholar Enhancer
-// @namespace    http://tampermonkey.net/
-// @version      0.6
-// @description  Enhance Google Scholar with column layout options and auto-paging
-// @icon         https://www.google.com/s2/favicons?domain=scholar.google.com
+// @namespace    https://greasyfork.org/users/YourUserName
+// @version      0.7
+// @description  Enhance Google Scholar with column layout options, auto-paging, and advanced search features
+// @author       knox
+// @license      MIT
 // @match        *://scholar.google.com/*
 // @match        *://scholar.google.com.au/*
 // @match        *://scholar.google.co.uk/*
@@ -11,13 +12,13 @@
 // @match        *://scholar.google.com.hk/*
 // @match        *://scholar.google.co.in/*
 // @match        *://scholar.google.co.jp/*
-// @match        *://scholar.google.com.hk/*
 // @match        *://scholar.google.de/*
 // @match        *://scholar.google.fr/*
 // @match        *://scholar.google.es/*
 // @match        *://scholar.google.it/*
 // @match        *://scholar.google.nl/*
 // @match        *://scholar.google.com.sg/*
+// @icon         https://www.google.com/s2/favicons?domain=scholar.google.com
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
