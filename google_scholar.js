@@ -231,58 +231,87 @@
             height: 100%;
             background-color: rgba(0,0,0,0.5);
             z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         `;
 
         const modal = document.createElement('div');
         modal.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
-            z-index: 10000;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         `;
+
         modal.innerHTML = `
-            <h2>Google Scholar Enhancer Settings</h2>
-            <label>
-                Column Layout:
-                <select id="columnLayout">
-                    <option value="1" ${config.columnLayout === 1 ? 'selected' : ''}>Single Column</option>
-                    <option value="2" ${config.columnLayout === 2 ? 'selected' : ''}>Two Columns</option>
-                    <option value="3" ${config.columnLayout === 3 ? 'selected' : ''}>Three Columns</option>
-                </select>
-            </label>
-            <br><br>
-            <label>
-                <input type="checkbox" id="autoPaging" ${config.autoPagingEnabled ? 'checked' : ''}>
-                Enable Automatic Page Turning
-            </label>
-            <br><br>
-            <label>
-                <input type="checkbox" id="bibtexCopy" ${config.bibtexCopyEnabled ? 'checked' : ''}>
-                Enable Direct BibTeX Copying
-            </label>
-            <br><br>
-            <label>
-                <input type="checkbox" id="bibtexCopyAlert" ${config.bibtexCopyAlert ? 'checked' : ''}>
-                Show Alert on BibTeX Copy
-            </label>
-            <br><br>
-            <label>
-                <input type="checkbox" id="singleResultRedirect" ${config.singleResultRedirect ? 'checked' : ''}>
-                Auto-redirect for Single Results
-            </label>
-            <br><br>
-            <label>
-                <input type="checkbox" id="showFrequentScholars" ${config.showFrequentScholars ? 'checked' : ''}>
-                Show Frequent Scholars
-            </label>
-            <br><br>
-            <button id="saveSettings">Save</button>
-            <button id="closeSettings">Close</button>
+            <h2 style="margin-top: 0; color: #1a73e8; font-size: 24px; margin-bottom: 20px;">Google Scholar Enhancer Settings</h2>
+            <div style="display: grid; gap: 20px;">
+                <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">Layout Options</h3>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Column Layout:</label>
+                        <select id="columnLayout" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="1" ${config.columnLayout === 1 ? 'selected' : ''}>Single Column</option>
+                            <option value="2" ${config.columnLayout === 2 ? 'selected' : ''}>Two Columns</option>
+                            <option value="3" ${config.columnLayout === 3 ? 'selected' : ''}>Three Columns</option>
+                        </select>
+                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Choose how many columns to display search results in.</p>
+                    </div>
+                </div>
+                <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">Navigation Options</h3>
+                    <div>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="autoPaging" ${config.autoPagingEnabled ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>Enable Automatic Page Turning</span>
+                        </label>
+                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Automatically load more results as you scroll down the page.</p>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="singleResultRedirect" ${config.singleResultRedirect ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>Auto-redirect for Single Results</span>
+                        </label>
+                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Automatically redirect to the paper's page when there's only one search result.</p>
+                    </div>
+                </div>
+                <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">BibTeX Options</h3>
+                    <div>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="bibtexCopy" ${config.bibtexCopyEnabled ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>Enable Direct BibTeX Copying</span>
+                        </label>
+                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Copy BibTeX to clipboard with a single click.</p>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="bibtexCopyAlert" ${config.bibtexCopyAlert ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>Show Alert on BibTeX Copy</span>
+                        </label>
+                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Display an alert when BibTeX is successfully copied.</p>
+                    </div>
+                </div>
+                <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 4px;">
+                    <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 18px;">Additional Features</h3>
+                    <div>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="showFrequentScholars" ${config.showFrequentScholars ? 'checked' : ''} style="margin-right: 10px;">
+                            <span>Show Frequent Scholars</span>
+                        </label>
+                        <p style="margin-top: 5px; color: #5f6368; font-size: 14px;">Display a list of frequently appearing authors in the search results.</p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                <button id="saveSettings" style="background-color: #1a73e8; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-right: 10px;">Save</button>
+                <button id="closeSettings" style="background-color: #f1f3f4; color: #202124; border: 1px solid #dadce0; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Close</button>
+            </div>
         `;
 
         modalOverlay.appendChild(modal);
@@ -301,6 +330,23 @@
             if (e.target === modalOverlay) {
                 closeModal();
             }
+        });
+
+        const saveButton = document.getElementById('saveSettings');
+        const closeButton = document.getElementById('closeSettings');
+
+        saveButton.addEventListener('mouseover', () => {
+            saveButton.style.backgroundColor = '#1967d2';
+        });
+        saveButton.addEventListener('mouseout', () => {
+            saveButton.style.backgroundColor = '#1a73e8';
+        });
+
+        closeButton.addEventListener('mouseover', () => {
+            closeButton.style.backgroundColor = '#e8eaed';
+        });
+        closeButton.addEventListener('mouseout', () => {
+            closeButton.style.backgroundColor = '#f1f3f4';
         });
 
         document.getElementById('saveSettings').addEventListener('click', () => {
