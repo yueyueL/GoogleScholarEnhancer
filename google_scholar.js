@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Scholar Enhancer
 // @namespace    https://greasyfork.org/users/YourUserName
-// @version      0.7
+// @version      0.8
 // @description  Enhance Google Scholar with column layout options, auto-paging, and advanced search features
 // @author       knox
 // @license      MIT
