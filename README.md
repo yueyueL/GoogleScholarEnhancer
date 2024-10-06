@@ -13,6 +13,7 @@
 - **Direct BibTeX Copying**: Copy BibTeX citations directly to your clipboard with a single click.
 - **Single Result Auto-Redirect**: Automatically redirect to the paper's page when there's only one search result.
 - **Frequent Scholars Display**: Show a list of the most frequently appearing authors in your search results.
+- **Publication Year Distribution**: Visualize the distribution of publication years for your search results.
 - **Advanced Search Interface**: Use an enhanced search interface for more precise queries.
 - **Multilingual Support**: Switch between English and Chinese interfaces.
 
@@ -45,6 +46,7 @@ After installation, visit Google Scholar. You'll see new options and features:
 - Auto-loading of more results as you scroll
 - Direct BibTeX copying when clicking on BibTeX links
 - A list of frequent scholars on the right side of the page (if enabled)
+- A visualization of publication year distribution on the right side of the page (if enabled)
 
 ## Configuration
 
@@ -55,6 +57,7 @@ Click the settings button (⚙️) to open the configuration modal. Here you can
 - Enable/disable direct BibTeX copying and alerts
 - Toggle single result auto-redirect
 - Show/hide frequent scholars
+- Show/hide publication year distribution
 - Switch between English and Chinese interfaces
 
 ## Contributing
